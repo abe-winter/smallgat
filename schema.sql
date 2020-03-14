@@ -33,7 +33,7 @@ create table institutions (
 );
 
 -- for controlling institutions
-create table roles (
+create table inst_roles (
   instid uuid,
   userid uuid,
   role text, -- in (owner, admin)
