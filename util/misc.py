@@ -1,3 +1,6 @@
+import functools, flask, json
+from . import con
+
 class RateError(Exception):
   "flask will catch these and show a nice page"
 
@@ -16,3 +19,17 @@ def try_rate(name, count, bucket, value=None, crash=True):
 def external_ip():
   # todo
   return None
+
+def require_session(inner):
+  @functools.wraps(inner)
+  def outer(*args, **kwargs):
+    # todo: remember redirect page
+    sessionid = flask.session.get('sessionid')
+    if not sessionid:
+      return flask.redirect(flask.url_for('auth.get_login'))
+    raw = con.REDIS.get(json.dumps({'k': 'sesh', 'v': sessionid}))
+    if not raw:
+      return flask.redirect(flask.url_for('auth.get_login'))
+    flask.g.session_body = json.loads(raw)
+    return inner(*args, **kwargs)
+  return outer
