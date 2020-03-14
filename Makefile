@@ -8,3 +8,15 @@ db-host:
 
 psql:
 	docker exec -it ${NAME}-db psql -U postgres
+
+init-schema:
+	automig_pg --glob schema.sql init
+
+update-schema:
+	automig_pg --glob schema.sql update
+
+redis:
+	docker run -d --name ${NAME}-redis redis
+
+redis-host:
+	@docker inspect -f '{{.NetworkSettings.IPAddress}}' ${NAME}-redis
