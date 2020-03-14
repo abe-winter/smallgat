@@ -1,11 +1,12 @@
 "magic link functionality"
 
-import flask, uuid, json
+import flask, uuid, json, logging
 from ..util import email, misc, con
 
 APP = flask.Blueprint('auth', __name__)
 
-EXPIRE_LOGIN = 30 * 60
+EXPIRE_MAGIC = 30 * 60
+EXPIRE_SESSION = 3600 * 24 * 60
 
 @APP.route('/login')
 def get_login():
@@ -25,7 +26,7 @@ def post_login():
     raise ValueError('email too long')
   misc.try_rate('login', 1000, '1m')
   misc.try_rate('login.ip', 10, '1m', misc.external_ip())
-  misc.try_rate('login.email', 1, '10s', email_addr)
+  misc.try_rate('login.email', 1, '10s', email_addr) # todo: normalize email here
   user_key = json.dumps({'k': 'ulog', 'v': email_addr})
   val = con.REDIS.get(user_key)
   if val:
@@ -39,9 +40,32 @@ def post_login():
     link=flask.url_for('auth.redeem_magic', key=body['magic'], _external=True),
     login_url=flask.url_for('auth.get_login', _external=True),
   ))
-  con.REDIS.setex(user_key, EXPIRE_LOGIN, json.dumps(body))
-  con.REDIS.setex(json.dumps({'k': 'magic', 'v': body['magic']}), EXPIRE_LOGIN, json.dumps(body))
+  con.REDIS.setex(user_key, EXPIRE_MAGIC, json.dumps(body))
+  con.REDIS.setex(json.dumps({'k': 'magic', 'v': body['magic']}), EXPIRE_MAGIC, json.dumps(body))
   return flask.render_template('ok_login.htm')
+
+def lookup_or_create_user(email_addr):
+  "returns userid"
+  with con.withcon() as dbcon, dbcon.cursor() as cur:
+    cur.execute('select userid from users where email = %s', (email_addr,))
+    row = cur.fetchone()
+    if row is not None:
+      return row[0]
+    logging.info('creating user %s', email_addr)
+    cur.execute('insert into users (email) values (%s) returning userid', (email_addr,))
+    userid, = cur.fetchone()
+    dbcon.commit()
+    return userid
+
+def create_redis_session(userid, email_addr):
+  "returns sessionid"
+  sessionid = str(uuid.uuid4())
+  con.REDIS.setex(
+    json.dumps({'k': 'sesh', 'v': sessionid}),
+    EXPIRE_SESSION,
+    json.dumps({'email': email_addr, 'userid': userid})
+  )
+  return sessionid
 
 @APP.route('/magic/<uuid:key>')
 def redeem_magic(key):
@@ -55,4 +79,7 @@ def redeem_magic(key):
   body = json.loads(raw)
   con.REDIS.delete(magic_key)
   con.REDIS.delete(json.dumps({'k': 'ulog', 'v': body['email']}))
-  raise NotImplementedError("set cookie, redirect to user home")
+  userid = lookup_or_create_user(body['email'])
+  # todo: store list of active sessions somewhere so user can audit devices
+  flask.session['sessionid'] = create_redis_session(userid, body['email'])
+  return flask.redirect(flask.url_for('user.home'))

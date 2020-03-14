@@ -1,6 +1,6 @@
 "connections to storage"
 
-import psycopg2.pool, redis, os
+import psycopg2.pool, redis, os, contextlib
 
 PG_POOL = None
 REDIS = None
@@ -16,3 +16,12 @@ def connect_pg():
 def connect_redis():
   global REDIS
   REDIS = redis.Redis(os.environ['REDIS_HOST'])
+
+@contextlib.contextmanager
+def withcon():
+  "context manager for DB"
+  conn = PG_POOL.getconn()
+  try:
+    yield conn
+  finally:
+    PG_POOL.putconn(conn)

@@ -1,11 +1,12 @@
 "flask / gunicorn entrypoint"
 
-import flask
+import flask, os
 
 from .blueprints import auth
 from .util import con
 
 app = flask.Flask(__name__)
+app.secret_key = os.environ['FLASK_SECRET']
 app.register_blueprint(auth.APP, url_prefix='/auth')
 
 app.before_first_request(con.connect_all)
