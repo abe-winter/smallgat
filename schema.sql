@@ -11,9 +11,23 @@ create table users (
   modified timestamp not null default now()
 );
 
+create table deleted_users (
+  -- todo: unique index across both tables
+  userid uuid primary key,
+  email text,
+  deleted timestamp not null default now(),
+  orig_created timestamp,
+  orig_modified timestamp
+);
+
 create table institutions (
   instid uuid primary key default uuid_generate_v4(),
+  name text,
+  url text,
+  banner_message text,
   email_domain text, -- optional
+  kind text, -- optional -- school work etc
+  group_size int default 5,
   created timestamp not null default now(),
   modified timestamp not null default now()
 );
@@ -44,6 +58,22 @@ create table bans (
   primary key (instid, userid),
   banned_by_user uuid not null,
   reason text,
+  created timestamp not null default now(),
+  modified timestamp not null default now()
+);
+
+create table groups (
+  groupid uuid primary key default uuid_generate_v4(),
+  instid uuid not null,
+  created timestamp not null default now(),
+  modified timestamp not null default now(),
+  deleted timestamp not null default now()
+);
+
+create table group_members (
+  groupid uuid,
+  userid uuid,
+  primary key (groupid, userid),
   created timestamp not null default now(),
   modified timestamp not null default now()
 );

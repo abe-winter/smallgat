@@ -1,5 +1,7 @@
-import functools, flask, json
+import functools, flask, json, uuid
 from . import con
+
+EXPIRE_SESSION = 3600 * 24 * 60
 
 class RateError(Exception):
   "flask will catch these and show a nice page"
@@ -19,6 +21,19 @@ def try_rate(name, count, bucket, value=None, crash=True):
 def external_ip():
   # todo
   return None
+
+def session_key(sessionid):
+  return json.dumps({'k': 'sesh', 'v': sessionid})
+
+def create_redis_session(userid, email_addr):
+  "returns sessionid"
+  sessionid = str(uuid.uuid4())
+  con.REDIS.setex(
+    session_key(sessionid),
+    EXPIRE_SESSION,
+    json.dumps({'email': email_addr, 'userid': userid})
+  )
+  return sessionid
 
 def require_session(inner):
   @functools.wraps(inner)

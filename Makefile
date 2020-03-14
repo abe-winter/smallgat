@@ -23,3 +23,6 @@ redis-host:
 
 redis-cli:
 	docker exec -it ${NAME}-redis redis-cli
+
+lint:
+	pylint -E . blueprints/ util/

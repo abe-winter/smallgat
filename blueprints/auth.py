@@ -6,7 +6,6 @@ from ..util import email, misc, con
 APP = flask.Blueprint('auth', __name__)
 
 EXPIRE_MAGIC = 30 * 60
-EXPIRE_SESSION = 3600 * 24 * 60
 
 @APP.route('/login')
 def get_login():
@@ -57,16 +56,6 @@ def lookup_or_create_user(email_addr):
     dbcon.commit()
     return userid
 
-def create_redis_session(userid, email_addr):
-  "returns sessionid"
-  sessionid = str(uuid.uuid4())
-  con.REDIS.setex(
-    json.dumps({'k': 'sesh', 'v': sessionid}),
-    EXPIRE_SESSION,
-    json.dumps({'email': email_addr, 'userid': userid})
-  )
-  return sessionid
-
 @APP.route('/magic/<uuid:key>')
 def redeem_magic(key):
   misc.try_rate('redeem', 1000, '1m')
@@ -81,5 +70,5 @@ def redeem_magic(key):
   con.REDIS.delete(json.dumps({'k': 'ulog', 'v': body['email']}))
   userid = lookup_or_create_user(body['email'])
   # todo: store list of active sessions somewhere so user can audit devices
-  flask.session['sessionid'] = create_redis_session(userid, body['email'])
+  flask.session['sessionid'] = misc.create_redis_session(userid, body['email'])
   return flask.redirect(flask.url_for('user.home'))
