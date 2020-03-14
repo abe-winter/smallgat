@@ -3,6 +3,8 @@ create extension if not exists "uuid-ossp";
 create table users (
   userid uuid primary key default uuid_generate_v4(),
   email text not null unique,
+  name text,
+  age int,
   address text,
   -- todo: cache geocoded address
   created timestamp not null default now(),

@@ -20,3 +20,6 @@ redis:
 
 redis-host:
 	@docker inspect -f '{{.NetworkSettings.IPAddress}}' ${NAME}-redis
+
+redis-cli:
+	docker exec -it ${NAME}-redis redis-cli
