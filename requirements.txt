@@ -5,3 +5,4 @@ redis==3.4.1
 hiredis==1.0.1
 geocoder==1.38.1
 geopy==1.21.0
+gunicorn==20.0.4
