@@ -1,7 +1,6 @@
 # Burndown list
 
 * [ ] require owners to be members as well to use the group features
-* [ ] email domain checking
 * support `require_approval` in UX & make it the default
 	- [ ] include toggle for this in create institution
 	- [ ] make this editable on view institution page (for owners)

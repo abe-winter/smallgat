@@ -62,8 +62,8 @@ def join(instid):
     # todo: check complete user
     cur.execute('select email_domain, require_approval from institutions where instid = %s', (str(instid),))
     email_domain, require_approval = cur.fetchone()
-    if email_domain:
-      raise NotImplementedError('todo: email domain restriction')
+    if email_domain and not flask.g.session_body['email'].endswith('@' + email_domain):
+      return f'Error: you need an email in {email_domain} to join'
     cur.execute(
       'insert into memberships (instid, userid, role, approved) values (%s, %s, %s, %s)',
       (str(instid), flask.g.session_body['userid'], flask.request.form['role'], not require_approval)
