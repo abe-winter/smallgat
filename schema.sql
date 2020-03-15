@@ -6,7 +6,7 @@ create table users (
   name text,
   age int,
   address text,
-  -- todo: cache geocoded address
+  geo jsonb, -- output from geocoder.google
   created timestamp not null default now(),
   modified timestamp not null default now()
 );
