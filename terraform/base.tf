@@ -18,6 +18,10 @@ resource google_project_service geocoding {
   service = "geocoding-backend.googleapis.com"
 }
 
+resource google_project_service stackdriver {
+  service = "stackdriver.googleapis.com"
+}
+
 resource google_compute_network smallgat {
   name = "smallgat"
 }
