@@ -21,15 +21,27 @@
   </tr>
 </table>
 <hr>
+<div>
+<p>Managed by:</p>
+<ul>{% for name, email, role in managers %}
+  <li>
+    <a href="mailto:{{email}}">{{name}} ({{email}})</a>
+    ({{role or 'no role given'}})
+  </li>
+{% endfor %}</ul>
+</div>
+<hr>
 {% if inst_row %}
   <div class="alert alert-info">You're an <u>admin</u> for this institution, with role: {{inst_row[0]}}</div>
-{% elif member_row %}
+{% endif %}
+{% if member_row %}
   <div class="alert alert-success">You're a <u>member</u> of this institution, with role: {{member_row[0]}}</div>
   {% if group_row %}
   {% else %}
   <div class="alert alert-warning">You're not a member of any groups in this institution</div>
   {% endif %}
 {% else %}
+  <p>Become a member. For safety, make sure you got this link from someone who works at the institution and that you know and trust the emails of the managers above.</p>
   <form action="{{url_for('institution.join', instid=instid)}}" method="post">
     <label>Your role at the institution
       <input type="text" name="role" class="form-control" placeholder="Role" required>

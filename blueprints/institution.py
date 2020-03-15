@@ -3,6 +3,8 @@ from ..util import misc, con
 
 APP = flask.Blueprint('institution', __name__)
 
+MAX_INST = 5
+
 @APP.route('/new')
 @misc.require_session
 def get_new():
@@ -14,6 +16,10 @@ def post_new():
   form = flask.request.form
   print(form)
   with con.withcon() as dbcon, dbcon.cursor() as cur:
+    cur.execute('select count(*) from institutions join inst_roles using (instid) where userid = %s', (flask.g.session_body['userid'],))
+    count, = cur.fetchone()
+    if count >= MAX_INST:
+      return f"Error: you have {MAX_INST} institutions already, delete some before making new ones"
     role = form['role'] or None
     email_domain = form['email_domain'] or None
     cur.execute('insert into institutions (name, url, email_domain, kind) values (%s, %s, %s, %s) returning instid', (form['name'], form['url'], email_domain, form['kind']))
@@ -25,12 +31,15 @@ def post_new():
 @APP.route('/inst/<uuid:instid>')
 @misc.require_session
 def inst(instid):
+  misc.try_rate('inst.view', 100, '1m', misc.external_ip()) # to avoid scanning the space
   with con.withcon() as dbcon, dbcon.cursor() as cur:
     cur.execute('select name, url, email_domain, kind, group_size from institutions where instid = %s', (str(instid),))
     row = cur.fetchone()
     if row is None:
       flask.abort(404)
     name, url, email_domain, kind, group_size = row
+    cur.execute('select name, email, role from inst_roles join users using (userid) where instid = %s', (str(instid),))
+    managers = cur.fetchall()
     inst_user = (str(instid), flask.g.session_body['userid'])
     cur.execute('select role from memberships where instid = %s and userid = %s', inst_user)
     member_row = cur.fetchone()
@@ -40,9 +49,10 @@ def inst(instid):
       cur.execute('select groups.groupid from groups join group_members using (groupid) where instid = %s and userid = %s', inst_user)
       group_row = cur.fetchone()
     else: # i.e. assume that owners don't have or need memberships
+      # todo: fold this into the inst_roles query above
       cur.execute('select role from inst_roles where instid = %s and userid = %s', inst_user)
       inst_row = cur.fetchone()
-  return flask.render_template('inst.htm', instid=instid, name=name, url=url, email_domain=email_domain, kind=kind, group_size=group_size, member_row=member_row, inst_row=inst_row, group_row=group_row)
+  return flask.render_template('inst.htm', instid=instid, name=name, url=url, email_domain=email_domain, kind=kind, group_size=group_size, member_row=member_row, inst_row=inst_row, group_row=group_row, managers=managers)
 
 @APP.route('/join/<uuid:instid>', methods=['POST'])
 @misc.require_session
