@@ -25,4 +25,36 @@ def post_new():
 @APP.route('/inst/<uuid:instid>')
 @misc.require_session
 def inst(instid):
-  raise NotImplementedError
+  with con.withcon() as dbcon, dbcon.cursor() as cur:
+    cur.execute('select name, url, email_domain, kind, group_size from institutions where instid = %s', (str(instid),))
+    row = cur.fetchone()
+    if row is None:
+      raise NotImplementedError # todo: 404
+    name, url, email_domain, kind, group_size = row
+    inst_user = (str(instid), flask.g.session_body['userid'])
+    cur.execute('select role from memberships where instid = %s and userid = %s', inst_user)
+    member_row = cur.fetchone()
+    inst_row = None
+    group_row = None
+    if member_row: # i.e. assume that owners don't have or need memberships
+      cur.execute('select groups.groupid from groups join group_members using (groupid) where instid = %s and userid = %s', inst_user)
+      group_row = cur.fetchone()
+    else: # i.e. assume that owners don't have or need memberships
+      cur.execute('select role from inst_roles where instid = %s and userid = %s', inst_user)
+      inst_row = cur.fetchone()
+  return flask.render_template('inst.htm', instid=instid, name=name, url=url, email_domain=email_domain, kind=kind, group_size=group_size, member_row=member_row, inst_row=inst_row, group_row=group_row)
+
+@APP.route('/join/<uuid:instid>', methods=['POST'])
+@misc.require_session
+def join(instid):
+  with con.withcon() as dbcon, dbcon.cursor() as cur:
+    cur.execute('select email_domain, require_approval from institutions where instid = %s', (str(instid),))
+    email_domain, require_approval = cur.fetchone()
+    if email_domain:
+      raise NotImplementedError('todo: email domain restriction')
+    cur.execute(
+      'insert into memberships (instid, userid, role, approved) values (%s, %s, %s, %s)',
+      (str(instid), flask.g.session_body['userid'], flask.request.form['role'], not require_approval)
+    )
+    dbcon.commit()
+  return flask.redirect(flask.url_for('institution.inst', instid=instid))

@@ -1,0 +1,41 @@
+{% extends "base.htm" %}
+{% block title %}home{% endblock %}
+{% block container %}
+<h3>Institution page</h3>
+<table class="table">
+  <tr>
+    <th>Name</th>
+    <td>{{name}}</td>
+  </tr>
+  <tr>
+    <th>External URL</th>
+    <td><a href="{{url}}">{{url}}</a></td>
+  </tr>
+  <tr>
+    <th>Email domain restriction</th>
+    <td>{{email_domain or '(unset)'}}</td>
+  </tr>
+  <tr>
+    <th>Group size for meetups</th>
+    <td>{{group_size}}</td>
+  </tr>
+</table>
+<hr>
+{% if inst_row %}
+  <div class="alert alert-info">You're an <u>admin</u> for this institution, with role: {{inst_row[0]}}</div>
+{% elif member_row %}
+  <div class="alert alert-success">You're a <u>member</u> of this institution, with role: {{member_row[0]}}</div>
+  {% if group_row %}
+  {% else %}
+  <div class="alert alert-warning">You're not a member of any groups in this institution</div>
+  {% endif %}
+{% else %}
+  <form action="{{url_for('institution.join', instid=instid)}}" method="post">
+    <label>Your role at the institution
+      <input type="text" name="role" class="form-control" placeholder="Role" required>
+    </label>
+    <br>
+    <button role="submit" class="btn btn-success">Join</button>
+  </form>
+{% endif %}
+{% endblock container %}

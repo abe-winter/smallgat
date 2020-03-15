@@ -83,3 +83,5 @@ create table group_members (
   created timestamp not null default now(),
   modified timestamp not null default now()
 );
+
+create index group_members_userid on group_members (userid);
