@@ -5,29 +5,7 @@
   <div class="alert alert-danger">This page requires JS to edit fields</div>
 </noscript>
 <h3>Your info</h3>
-<div id="edit-app">
-  {% if incomplete %}
-  <div class="alert alert-danger">Your account is incomplete. You can't join groups until you populate all the fields</div>
-  {% endif %}
-  <table id="edit-app" class="table">
-    <tr>
-      <th>Email</th>
-      <td>{{email}}</td>
-    </tr>
-    <tr>
-      <th>Name</th>
-      <td>{{name or ''}}</td>
-    </tr>
-    <tr>
-      <th>Age</th>
-      <td>{{age or ''}}</td>
-    </tr>
-    <tr>
-      <td><b>Address</b><br>(This is just used for finding nearby people, okay to leave it approximate for privacy)</td>
-      <td>{{address or ''}}</td>
-    </tr>
-  </table>
-</div>
+<div id="edit-app"></div>
 <hr>
 <h3>🏢 Your institutions</h3>
 <p>Institutions are things like schools, jobs, conferences and religious organizations.</p>
