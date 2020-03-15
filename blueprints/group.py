@@ -25,10 +25,10 @@ class InstGroups:
       (instid,)
     )
     for userid, lat, lng in cur.fetchall():
-      user = User(userid, user_groups.get(userid), lat, lng)
+      user = User(userid, user_groups.get(userid), float(lat), float(lng))
       self.users[user.userid] = user
       if user.groupid:
-        self.groups[user.userid].append(user.userid)
+        self.groups[user.groupid].append(user.userid)
     return self
 
   def centroid(self, userids):
@@ -71,6 +71,14 @@ class InstGroups:
     distances.sort()
     return distances
 
+NEW_GROUP_BODY = """
+<html><body>
+You're in a group! More details here:
+<br>
+<a href="{url}">{url}
+</body></html>
+"""
+
 def create_group(cur, instid, userids):
   "confirm users aren't in groups, create a group, return new groupid"
   cur.execute(
@@ -82,7 +90,7 @@ def create_group(cur, instid, userids):
     logging.info('removing %d already_assigned from %d users', len(already_assigned), len(userids))
     userids = list(set(userids) - set(already_assigned))
   if not userids:
-    raise NotImplementedError('todo: fancy error for race condition')
+    raise misc.FancyError("Something went wrong and those people aren't available -- try again")
   cur.execute('insert into groups (instid) values (%s) returning groupid', (instid,))
   groupid, = cur.fetchone()
   psycopg2.extras.execute_batch(
@@ -94,12 +102,21 @@ def create_group(cur, instid, userids):
   emails = [email for email, in cur.fetchall()]
   url = flask.url_for('group.view', groupid=groupid, _external=True)
   # todo: move email to queue
-  email.send_email(', '.join(emails), 'New gathering created', f'<html><body>You\'re in a new group! More details here:<br><a href="{url}">{url}</body></html>')
+  email.send_email(', '.join(emails), 'New gathering created', NEW_GROUP_BODY.format(url=url))
   return groupid
 
-def assign_group(cur, groupid, userid, group_size):
+def assign_group(cur, groupid, userid, group_size, email_addr):
   "add user to group, fail if full"
-  raise NotImplementedError
+  cur.execute('select userid from group_members where groupid = %s', (groupid,))
+  userids = [userid for userid, in cur.fetchall()]
+  if userid in userids:
+    raise misc.FancyError("You're already in this group")
+  if len(userids) >= group_size:
+    raise misc.FancyError("Group too large")
+  cur.execute('insert into group_members (groupid, userid) values (%s, %s)', (groupid, userid))
+  # todo: email in queue
+  url = flask.url_for('group.view', groupid=groupid, _external=True)
+  email.send_email(email_addr, "You joined a gathering", NEW_GROUP_BODY.format(url=url))
 
 @APP.route('/find/<uuid:instid>', methods=['POST'])
 @misc.require_session
@@ -120,9 +137,9 @@ def find_group(instid):
     groups = InstGroups().load(cur, str(instid))
   open_groups = groups.open_group(userid, group_size, max_miles)
   if open_groups:
-    groupid = open_groups[0][0]
+    groupid = open_groups[0][1]
     with con.withcon() as dbcon, dbcon.cursor() as cur:
-      assign_group(cur, groupid, userid, group_size)
+      assign_group(cur, groupid, userid, group_size, flask.g.session_body['email'])
       dbcon.commit()
     return flask.redirect(flask.url_for('group.view', groupid=groupid))
   people = groups.construct_group(userid, max_miles)

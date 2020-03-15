@@ -6,6 +6,10 @@ EXPIRE_SESSION = 3600 * 24 * 60
 class RateError(Exception):
   "flask will catch these and show a nice page"
 
+class FancyError(Exception):
+  "show a nice page with message"
+  # todo: actually show a nice page
+
 def try_rate(name, count, bucket, value=None, crash=True):
   """Crashes or returns false (depending on crash param) if rate exceeded.
   name: name of the rate-limiter
