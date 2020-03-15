@@ -16,6 +16,7 @@ def post_new():
   form = flask.request.form
   print(form)
   with con.withcon() as dbcon, dbcon.cursor() as cur:
+    # todo: check complete user
     cur.execute('select count(*) from institutions join inst_roles using (instid) where userid = %s', (flask.g.session_body['userid'],))
     count, = cur.fetchone()
     if count >= MAX_INST:
@@ -58,6 +59,7 @@ def inst(instid):
 @misc.require_session
 def join(instid):
   with con.withcon() as dbcon, dbcon.cursor() as cur:
+    # todo: check complete user
     cur.execute('select email_domain, require_approval from institutions where instid = %s', (str(instid),))
     email_domain, require_approval = cur.fetchone()
     if email_domain:
@@ -68,3 +70,8 @@ def join(instid):
     )
     dbcon.commit()
   return flask.redirect(flask.url_for('institution.inst', instid=instid))
+
+@APP.route('/leave/<uuid:instid>', methods=['POST'])
+@misc.require_session
+def leave(instid):
+  raise NotImplementedError

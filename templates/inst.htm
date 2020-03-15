@@ -1,5 +1,5 @@
 {% extends "base.htm" %}
-{% block title %}home{% endblock %}
+{% block title %}institution{% endblock %}
 {% block container %}
 <h3>Institution page</h3>
 <table class="table">
@@ -36,12 +36,29 @@
 {% endif %}
 {% if member_row %}
   <div class="alert alert-success">You're a <u>member</u> of this institution, with role: {{member_row[0]}}</div>
+  <form action="{{url_for('institution.leave', instid=instid)}}" method="post">
+    <button role="submit" class="btn btn-danger">Leave institution</button>
+  </form>
+  <br>
   {% if group_row %}
   {% else %}
-  <div class="alert alert-warning">You're not a member of any groups in this institution</div>
+  <div class="alert alert-warning">
+    <p>You don't have a group yet in this institution</p>
+    <h3>Find a group</h3>
+    <p>This proposes a group of the closest people to you, or finds an existing group with extra space.</p>
+    <form action="{{url_for('group.find_group', instid=instid)}}" method="post">
+      <label>Max miles
+        <p class="text-muted">This controls how far you can travel. We recommend setting it to under a mile in cities and 4 miles if you have a car.</p>
+        <input type="number" name="max_miles" class="form-control" placeholder="Max miles" value="0.25">
+      </label>
+      <br>
+      <button role="submit" class="btn btn-success">Link up</button>
+    </form>
+  </div>
   {% endif %}
 {% else %}
   <p>Become a member. For safety, make sure you got this link from someone who works at the institution and that you know and trust the emails of the managers above.</p>
+  <p><b>Note</b>: your email address will be visible to others who join the group.</p>
   <form action="{{url_for('institution.join', instid=instid)}}" method="post">
     <label>Your role at the institution
       <input type="text" name="role" class="form-control" placeholder="Role" required>

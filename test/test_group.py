@@ -31,5 +31,5 @@ def test_open_group(igroup):
 
 def test_construct_group(igroup):
   # def construct_group(self, userid, group_size, radius):
-  assert igroup.construct_group('g', 3, 0.5) == [(0.09748801418021727, 'g')]
-  assert igroup.construct_group('d', 3, 0.5) == [(0, 'd'), (0, 'd')]
+  assert igroup.construct_group('g', 0.5) == [(0.09748801418021727, 'h')]
+  assert igroup.construct_group('d', 0.5) == [(0, 'e'), (0, 'f')]
