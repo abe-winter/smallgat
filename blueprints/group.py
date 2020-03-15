@@ -1,4 +1,4 @@
-import flask, geopy, collections, itertools
+import flask, geopy.distance, collections, itertools
 from ..util import misc, con
 
 APP = flask.Blueprint('group', __name__)
@@ -7,8 +7,7 @@ User = collections.namedtuple('User', 'userid groupid lat lng')
 
 class InstGroups:
   "represents users and groups for an institution and permits some distance queries"
-  def __init__(self, instid):
-    self.instid = instid
+  def __init__(self):
     self.groups = collections.defaultdict(list)
     self.users = {}
 
@@ -46,17 +45,15 @@ class InstGroups:
         distance = geopy.distance.distance(user_loc, centroid)
         if distance.miles <= radius:
           distances.append((distance.miles, groupid))
-    if distances:
-      distances.sort()
-      return distances[0][1]
-    return None
+    distances.sort()
+    return distances
 
   def construct_group(self, userid, group_size, radius):
     "construct a group from closest not-spoken-for users inside radius"
     own_user = self.users[userid]
     user_loc = geopy.Point(own_user.lat, own_user.lng)
     distances = []
-    for userid, user in self.users.items():
+    for user in self.users.values():
       if user.groupid or user.userid == userid:
         continue
       distance = geopy.distance.distance(
@@ -65,10 +62,8 @@ class InstGroups:
       )
       if distance.miles <= radius:
         distances.append((distance.miles, userid))
-    if distances:
-      distances.sort()
-      return distances[0][1]
-    return None
+    distances.sort()
+    return distances
 
 @APP.route('/find/<uuid:instid>')
 @misc.require_session
@@ -81,7 +76,7 @@ def find_group(instid):
     cur.execute('select 1 from memberships where instid = %s and userid = %s', (str(instid), flask.g.session_body['userid']))
     if not cur.fetchone():
       flask.abort(403)
-    groups = InstGroups(str(instid)).load(cur, str(instid))
+    groups = InstGroups().load(cur, str(instid))
   print(groups)
   raise NotImplementedError
   # form['max_miles']
