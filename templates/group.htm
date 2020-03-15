@@ -1,21 +1,21 @@
 {% extends "base.htm" %}
 {% block title %}home{% endblock %}
 {% block container %}
-<h3>Group members</h3>
+<h3>Group</h3>
+<p>This is part of institution <a href="{{url_for('institution.inst', instid=instid)}}">{{inst_name}}</a></p>
+<h4>Members</h4>
 <ul>{% for userid, name, email in members %}
   <li>
     {{name}}
     <a href="mailto:{{email}}">{{email}}</a>
-    <details>
+    {% if userid == own_userid %}
+    <details style="display: inline">
       <summary>Actions</summary>
-      {% if userid == own_userid %}
-      <form style="display: inline" action="{{url_for('group.leave', groupid=groupid)}}" method="post">
+      <form style="position: absolute" action="{{url_for('group.leave', groupid=groupid)}}" method="post">
         <button class="btn btn-outline-danger btn-sm" role="submit">Leave</button>
       </form>
-      {% else %}
-
-      {% endif %}
     </details>
+    {% endif %}
   </li>
 {% endfor %}</ul>
 {% endblock container %}

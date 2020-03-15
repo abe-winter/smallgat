@@ -1,7 +1,7 @@
 {% extends "base.htm" %}
 {% block title %}institution{% endblock %}
 {% block container %}
-<h3>Institution page</h3>
+<h3>🏢 Institution page</h3>
 <table class="table">
   <tr>
     <th>Name</th>
@@ -40,7 +40,9 @@
     <button role="submit" class="btn btn-danger">Leave institution</button>
   </form>
   <br>
+  <h4>⛺ Group details</h4>
   {% if group_row %}
+  <p><a href="{{url_for('group.view', groupid=group_row[0])}}">You're in a group!</a></p>
   {% else %}
   <div class="alert alert-warning">
     <p>You don't have a group yet in this institution</p>

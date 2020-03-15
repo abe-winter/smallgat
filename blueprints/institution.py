@@ -75,3 +75,10 @@ def join(instid):
 @misc.require_session
 def leave(instid):
   raise NotImplementedError
+
+@APP.route('/flag/<uuid:userid>', methods=['POST'])
+@misc.require_session
+def flag(userid):
+  "mark this user as bad"
+  # not doing this for now -- admins can take care of this
+  raise NotImplementedError

@@ -144,4 +144,6 @@ def view(groupid):
     members = cur.fetchall()
     if not any(row[0] == flask.g.session_body['userid'] for row in members):
       flask.abort(403)
-  return flask.render_template('group.htm', members=members, own_userid=flask.g.session_body['userid'], groupid=groupid)
+    cur.execute('select groups.instid, name from groups join institutions using (instid) where groupid = %s', (str(groupid),))
+    instid, name = cur.fetchone()
+  return flask.render_template('group.htm', members=members, own_userid=flask.g.session_body['userid'], groupid=groupid, instid=instid, inst_name=name)
