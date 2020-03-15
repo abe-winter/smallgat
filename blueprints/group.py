@@ -134,7 +134,12 @@ def find_group(instid):
 @APP.route('/leave/<uuid:groupid>', methods=['POST'])
 @misc.require_session
 def leave(groupid):
-  raise NotImplementedError
+  with con.withcon() as dbcon, dbcon.cursor() as cur:
+    cur.execute('select instid from groups where groupid = %s', (str(groupid),))
+    instid, = cur.fetchone()
+    cur.execute('delete from group_members where groupid = %s and userid = %s', (str(groupid), flask.g.session_body['userid']))
+    dbcon.commit()
+  return flask.redirect(flask.url_for('institution.inst', instid=instid))
 
 @APP.route('/view/<uuid:groupid>')
 @misc.require_session
