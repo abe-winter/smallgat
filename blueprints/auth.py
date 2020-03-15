@@ -72,3 +72,10 @@ def redeem_magic(key):
   # todo: store list of active sessions somewhere so user can audit devices
   flask.session['sessionid'] = misc.create_redis_session(userid, body['email'])
   return flask.redirect(flask.url_for('user.home'))
+
+@APP.route('/logout', methods=['POST'])
+@misc.require_session
+def post_logout():
+  sessionid = flask.session.pop('sessionid')
+  con.REDIS.delete(misc.session_key(sessionid))
+  return flask.redirect(flask.url_for('user.home'))

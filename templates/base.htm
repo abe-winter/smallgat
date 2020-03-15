@@ -10,7 +10,16 @@
 <body>
 <div class="container">
 <br>
-<div class="text-muted">🏢⛺ <a href="{{url_for('user.home')}}">Small gatherings</a></div>
+<div class="text-muted">
+  {% if not no_logout %}
+  <div style="float: right">
+    <form action="{{url_for('auth.post_logout')}}" method="post">
+      <button class="btn btn-outline-secondary btn-sm">Logout</button>
+    </form>
+  </div>
+  {% endif %}
+  🏢⛺ <a href="{{url_for('user.home')}}">Small gatherings</a>
+</div>
 <hr>
 {% block container %}{% endblock %}
 <hr>
