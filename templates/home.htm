@@ -1,6 +1,9 @@
 {% extends "base.htm" %}
 {% block title %}home{% endblock %}
 {% block container %}
+<noscript>
+  <div class="alert alert-danger">This page requires JS to edit fields</div>
+</noscript>
 <h3>Your info</h3>
 <div id="edit-app">
   {% if incomplete %}
@@ -26,22 +29,23 @@
   </table>
 </div>
 <hr>
-{% if institutions %}
 <h3>Your institutions</h3>
-<hr>
+<p>Institutions are things like schools, jobs, conferences and religious organizations.</p>
+<p>You can join an institution by getting a share link from someone, or <a href="#">start an institution page</a> if one doesn't exist yet.</p>
+{% if not institutions %}
+<div class="alert alert-warning">You don't have any institutions yet.</div>
+{% else %}
 {% endif %}
+<hr>
 <h3>Your groups</h3>
-<p>Groups are ...</p>
+<p>Groups are the meetup units you've been assigned. To find a group, first join an institution and then click into it.</p>
 {% if not groups %}
-<div class="alert alert-warning">You don't have any groups yet. </div>
+<div class="alert alert-warning">You don't have any groups yet.</div>
 {% else %}
 {% endif %}
 <hr>
 <details>
   <summary>Advanced controls</summary>
-  <a class="btn btn-success" href="#">Create an institution</a>
-  <br>
-  <br>
   <form action="{{url_for('user.delete_me')}}" method="post">
     <button class="btn btn-danger" role="submit">Delete user</button>
   </form>
@@ -69,9 +73,24 @@ const VUE = new Vue({
       return !(this.name && this.age && this.address);
     },
   },
+  methods: {
+    async edit(field) {
+      const val = prompt(`Enter your ${field}`);
+      this[field] = val;
+      const res = await fetch('/user/edit', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ field, val }),
+      });
+    },
+  },
   {% raw %}
   template: `<div>
-  <div v-if="incomplete" class="alert alert-danger">Your account is incomplete. You can't join groups until you populate all the fields</div>
+    <div v-if="incomplete" class="alert alert-danger">Your account is incomplete. You can't join groups until you populate all the fields</div>
+    <div v-if="age && age < 13" class="alert alert-danger">You can't use this site if you're under 13</div>
     <table>
       <tr>
         <th>Email</th>
@@ -79,15 +98,15 @@ const VUE = new Vue({
       </tr>
       <tr>
         <th>Name</th>
-        <td><required :val="name" /></td>
+        <td @click="edit('name')" style="cursor: pointer"><required :val="name" /> ✏️</td>
       </tr>
       <tr>
         <th>Age</th>
-        <td><required :val="age" /></td>
+        <td @click="edit('age')" style="cursor: pointer"><required :val="age" /> ✏️</td>
       </tr>
       <tr>
         <th>Address</th>
-        <td><required :val="address" /></td>
+        <td @click="edit('address')" style="cursor: pointer"><required :val="address" /> ✏️</td>
       </tr>
     </table>
   </div>`,

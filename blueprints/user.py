@@ -28,3 +28,18 @@ def delete_me():
   con.REDIS.delete(misc.session_key(flask.session['sessionid']))
   del flask.session['sessionid'] # todo: clear session completely instead
   return flask.redirect(flask.url_for('auth.get_login'))
+
+@APP.route('/edit', methods=['POST'])
+@misc.require_session
+def edit_field():
+  body = flask.request.json
+  assert body['field'] in ('name', 'age', 'address')
+  val = int(body['val']) if body['field'] == 'age' else body['val']
+  with con.withcon() as dbcon, dbcon.cursor() as cur:
+    cur.execute(f'update users set {body["field"]} = %s where userid = %s', (val, flask.g.session_body['userid']))
+    dbcon.commit()
+  if body['field'] == 'address':
+    # todo: address API
+    # todo: enqueue this instead of inline processing
+    pass
+  return flask.jsonify({'ok': True, 'body': body})
