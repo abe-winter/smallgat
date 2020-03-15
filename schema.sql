@@ -28,6 +28,7 @@ create table institutions (
   email_domain text, -- optional
   kind text, -- optional -- school work etc
   group_size int default 5,
+  require_approval boolean default false,
   created timestamp not null default now(),
   modified timestamp not null default now()
 );
@@ -48,6 +49,7 @@ create table memberships (
   userid uuid,
   primary key (instid, userid),
   role text, -- 'what do you do there', only used for display
+  approved boolean, -- based on institution.require_approval
   created timestamp not null default now(),
   modified timestamp not null default now()
 );

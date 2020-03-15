@@ -31,7 +31,7 @@
 <hr>
 <h3>Your institutions</h3>
 <p>Institutions are things like schools, jobs, conferences and religious organizations.</p>
-<p>You can join an institution by getting a share link from someone, or <a href="#">start an institution page</a> if one doesn't exist yet.</p>
+<p>You can join an institution by getting a share link from someone, or <a href="{{url_for('institution.get_new')}}">start an institution page</a> if one doesn't exist yet.</p>
 {% if not institutions %}
 <div class="alert alert-warning">You don't have any institutions yet.</div>
 {% else %}
@@ -76,6 +76,9 @@ const VUE = new Vue({
   methods: {
     async edit(field) {
       const val = prompt(`Enter your ${field}`);
+      if (val == null) {
+        return;
+      }
       this[field] = val;
       const res = await fetch('/user/edit', {
         method: 'POST',

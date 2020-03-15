@@ -36,7 +36,7 @@ def edit_field():
   assert body['field'] in ('name', 'age', 'address')
   val = int(body['val']) if body['field'] == 'age' else body['val']
   with con.withcon() as dbcon, dbcon.cursor() as cur:
-    cur.execute(f'update users set {body["field"]} = %s where userid = %s', (val, flask.g.session_body['userid']))
+    cur.execute(f'update users set {body["field"]} = %s, modified = now() where userid = %s', (val, flask.g.session_body['userid']))
     dbcon.commit()
   if body['field'] == 'address':
     # todo: address API

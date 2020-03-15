@@ -2,13 +2,14 @@
 
 import flask, os
 
-from .blueprints import auth, user
+from .blueprints import auth, user, institution
 from .util import con
 
 app = flask.Flask(__name__)
 app.secret_key = os.environ['FLASK_SECRET']
 app.register_blueprint(auth.APP, url_prefix='/auth')
 app.register_blueprint(user.APP, url_prefix='/user')
+app.register_blueprint(institution.APP, url_prefix='/inst')
 
 app.before_first_request(con.connect_all)
 

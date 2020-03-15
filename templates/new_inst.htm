@@ -1,0 +1,33 @@
+{% extends "base.htm" %}
+{% block title %}login{% endblock %}
+{% block container %}
+<h3>Create an institution page</h3>
+<p>This form lets you create a signup page for your institution. From here, normal users will be able to become members and groups.</p>
+<p>To avoid confusion, we recommend only creating an institution page if you have some kind of authority in the institution (manager at a company, principal or teacher).</p>
+<form method="post">
+  <label>Institution name <input type="text" class="form-control" placeholder="Name" name="name" required></label>
+  <br>
+  <label>Institution URL <input type="text" class="form-control" placeholder="URL" name="url" required></label>
+  <br>
+  <label>Your role at the institution <input type="text" class="form-control" placeholder="Your role (optional)" name="role"></label>
+  <div class="form-group">
+    <label>Restrict email domain
+      <p><ul class="text-muted">
+        <li>This is optional and should look like the second half of your email address. (For example, if you're you@uchicago.edu, put uchicago.edu).</li>
+        <li>If you put a domain here, only people with emails from that domain will be able to join your page.</li>
+        <li>We recommend doing this for schools and offices that have their own email system.</li>
+      </ul></p>
+      <input type="text" class="form-control" placeholder="Restrict email domain (optional)" name="email_domain">
+    </label>
+  </div>
+  <label>Kind of institution <select class="form-control" name="kind">
+    <option value="other">Other</option>
+    <option value="school">School</option>
+    <option value="work">Work</option>
+    <option value="social">Religious</option>
+    <option value="athletic">Athletic</option>
+  </select></label>
+  <p>By clicking below, you accept our <a href="/terms">terms of service</a>.</p>
+  <button class="btn btn-primary">Create</button>
+</form>
+{% endblock container %}
