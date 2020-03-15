@@ -1,5 +1,5 @@
 import flask, geopy.distance, collections, itertools, logging, psycopg2.extras
-from ..util import misc, con
+from ..util import misc, con, email
 
 APP = flask.Blueprint('group', __name__)
 
@@ -85,13 +85,16 @@ def create_group(cur, instid, userids):
     raise NotImplementedError('todo: fancy error for race condition')
   cur.execute('insert into groups (instid) values (%s) returning groupid', (instid,))
   groupid, = cur.fetchone()
-  print('userids', userids)
   psycopg2.extras.execute_batch(
     cur,
     'insert into group_members (groupid, userid) values (%s, %s)',
     [(groupid, userid) for userid in userids]
   )
-  # todo: notify by email, and do it in a queue
+  cur.execute('select email from users where userid in %s', (userids,))
+  emails = [email for email, in cur.fetchall()]
+  url = flask.url_for('group.view', groupid=groupid, _external=True)
+  # todo: move email to queue
+  email.send_email(', '.join(emails), 'New gathering created', f'<html><body>You\'re in a new group! More details here:<br><a href="{url}">{url}</body></html>')
   return groupid
 
 def assign_group(cur, groupid, userid, group_size):
