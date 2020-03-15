@@ -9,7 +9,7 @@
   {% if incomplete %}
   <div class="alert alert-danger">Your account is incomplete. You can't join groups until you populate all the fields</div>
   {% endif %}
-  <table id="edit-app">
+  <table id="edit-app" class="table">
     <tr>
       <th>Email</th>
       <td>{{email}}</td>
@@ -32,9 +32,23 @@
 <h3>Your institutions</h3>
 <p>Institutions are things like schools, jobs, conferences and religious organizations.</p>
 <p>You can join an institution by getting a share link from someone, or <a href="{{url_for('institution.get_new')}}">start an institution page</a> if one doesn't exist yet.</p>
-{% if not institutions %}
+{% if not insts %}
 <div class="alert alert-warning">You don't have any institutions yet.</div>
 {% else %}
+<table class="table">
+  <tr>
+    <th>Name</th>
+    <th>External URL</th>
+    <th>Kind</th>
+  </tr>
+{% for instid, name, url, kind in insts %}
+<tr>
+  <td><a href="{{url_for('institution.inst', instid=instid)}}">{{name}}</a></td>
+  <td><a href="{{url}}">{{url}}</a></td>
+  <td>{{kind}}</td>
+</tr>
+{% endfor %}
+</table>
 {% endif %}
 <hr>
 <h3>Your groups</h3>
@@ -94,7 +108,7 @@ const VUE = new Vue({
   template: `<div>
     <div v-if="incomplete" class="alert alert-danger">Your account is incomplete. You can't join groups until you populate all the fields</div>
     <div v-if="age && age < 13" class="alert alert-danger">You can't use this site if you're under 13</div>
-    <table>
+    <table class="table">
       <tr>
         <th>Email</th>
         <td>{{email}}</td>

@@ -43,6 +43,8 @@ create table inst_roles (
   modified timestamp not null default now()
 );
 
+create index inst_roles_userid on inst_roles (userid);
+
 -- for users in institutions
 create table memberships (
   instid uuid,
@@ -53,6 +55,8 @@ create table memberships (
   created timestamp not null default now(),
   modified timestamp not null default now()
 );
+
+create index memberships_userid on memberships (userid);
 
 create table bans (
   instid uuid,

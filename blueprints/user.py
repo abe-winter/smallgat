@@ -6,10 +6,19 @@ APP = flask.Blueprint('user', __name__)
 @APP.route('/home')
 @misc.require_session
 def home():
+  userid = flask.g.session_body['userid']
   with con.withcon() as dbcon, dbcon.cursor() as cur:
-    cur.execute('select name, age, address from users where userid = %s', (flask.g.session_body['userid'],))
+    cur.execute('select name, age, address from users where userid = %s', (userid,))
     name, age, address = cur.fetchone()
-  return flask.render_template('home.htm', email=flask.g.session_body['email'], name=name, age=age, address=address, incomplete=not (name and age and address))
+    cur.execute(
+      """with role_insts as (select instid from inst_roles where userid = %s),
+      member_insts as (select instid from memberships where userid = %s)
+      select instid, name, url, kind from institutions where instid in (select instid from role_insts) or instid in (select instid from member_insts)
+      """,
+      (userid, userid)
+    )
+    insts = cur.fetchall()
+  return flask.render_template('home.htm', email=flask.g.session_body['email'], name=name, age=age, address=address, insts=insts, incomplete=not (name and age and address))
 
 @APP.route('/delete')
 @misc.require_session
