@@ -80,7 +80,7 @@ def find_group(instid):
   with con.withcon() as dbcon, dbcon.cursor() as cur:
     cur.execute('select 1 from memberships where instid = %s and userid = %s', (str(instid), flask.g.session_body['userid']))
     if not cur.fetchone():
-      raise NotImplementedError('todo 403')
+      flask.abort(403)
     groups = InstGroups(str(instid)).load(cur, str(instid))
   print(groups)
   raise NotImplementedError

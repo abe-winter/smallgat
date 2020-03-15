@@ -29,7 +29,7 @@ def inst(instid):
     cur.execute('select name, url, email_domain, kind, group_size from institutions where instid = %s', (str(instid),))
     row = cur.fetchone()
     if row is None:
-      raise NotImplementedError # todo: 404
+      flask.abort(404)
     name, url, email_domain, kind, group_size = row
     inst_user = (str(instid), flask.g.session_body['userid'])
     cur.execute('select role from memberships where instid = %s and userid = %s', inst_user)

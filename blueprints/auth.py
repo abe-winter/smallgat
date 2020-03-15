@@ -26,7 +26,7 @@ def post_login():
   misc.try_rate('login', 1000, '1m')
   misc.try_rate('login.ip', 10, '1m', misc.external_ip())
   misc.try_rate('login.email', 1, '10s', email_addr) # todo: normalize email here
-  user_key = json.dumps({'k': 'ulog', 'v': email_addr})
+  user_key = misc.rkey('ulog', email_addr)
   val = con.REDIS.get(user_key)
   if val:
     raise misc.RateError("you already have an open login request -- check your email")
@@ -40,7 +40,7 @@ def post_login():
     login_url=flask.url_for('auth.get_login', _external=True),
   ))
   con.REDIS.setex(user_key, EXPIRE_MAGIC, json.dumps(body))
-  con.REDIS.setex(json.dumps({'k': 'magic', 'v': body['magic']}), EXPIRE_MAGIC, json.dumps(body))
+  con.REDIS.setex(misc.rkey('magic', body['magic']), EXPIRE_MAGIC, json.dumps(body))
   return flask.render_template('ok_login.htm')
 
 def lookup_or_create_user(email_addr):
@@ -61,13 +61,13 @@ def redeem_magic(key):
   misc.try_rate('redeem', 1000, '1m')
   misc.try_rate('redeem.ip', 10, '1m', misc.external_ip())
   # warning: fun race conditions here
-  magic_key = json.dumps({'k': 'magic', 'v': str(key)})
+  magic_key = misc.rkey('magic', str(key))
   raw = con.REDIS.get(magic_key)
   if not raw:
     raise ValueError("todo: tell user bad link, give instructions")
   body = json.loads(raw)
   con.REDIS.delete(magic_key)
-  con.REDIS.delete(json.dumps({'k': 'ulog', 'v': body['email']}))
+  con.REDIS.delete(misc.rkey('ulog', body['email']))
   userid = lookup_or_create_user(body['email'])
   # todo: store list of active sessions somewhere so user can audit devices
   flask.session['sessionid'] = misc.create_redis_session(userid, body['email'])

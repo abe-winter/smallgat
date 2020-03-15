@@ -22,8 +22,12 @@ def external_ip():
   # todo
   return None
 
+def rkey(key, val):
+  "helper to format json-based redis keys"
+  return json.dumps({'k': key, 'v': val}, sort_keys=True)
+
 def session_key(sessionid):
-  return json.dumps({'k': 'sesh', 'v': sessionid})
+  return rkey('sesh', sessionid)
 
 def create_redis_session(userid, email_addr):
   "returns sessionid"
@@ -42,7 +46,7 @@ def require_session(inner):
     sessionid = flask.session.get('sessionid')
     if not sessionid:
       return flask.redirect(flask.url_for('auth.get_login'))
-    raw = con.REDIS.get(json.dumps({'k': 'sesh', 'v': sessionid}))
+    raw = con.REDIS.get(session_key(sessionid))
     if not raw:
       return flask.redirect(flask.url_for('auth.get_login'))
     flask.g.session_body = json.loads(raw)
