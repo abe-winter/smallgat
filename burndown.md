@@ -7,3 +7,4 @@
 	- [ ] remove unapproved users from most searches
 	- [ ] send approval emails
 	- [ ] user crud list per institution (visible to owners)
+* [ ] geo link / status on home

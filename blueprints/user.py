@@ -18,7 +18,12 @@ def home():
       (userid, userid)
     )
     insts = cur.fetchall()
-  return flask.render_template('home.htm', email=flask.g.session_body['email'], name=name, age=age, address=address, insts=insts, incomplete=not (name and age and address))
+    cur.execute(
+      'select institutions.name, institutions.instid, groups.groupid from group_members join groups using (groupid) join institutions using (instid) where userid = %s',
+      (userid,)
+    )
+    groups = cur.fetchall()
+  return flask.render_template('home.htm', email=flask.g.session_body['email'], name=name, age=age, address=address, insts=insts, groups=groups)
 
 @APP.route('/delete')
 @misc.require_session

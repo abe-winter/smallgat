@@ -33,8 +33,13 @@
 <p>Groups are the small meetup units you've been assigned. To find a group, first join an institution and then click into it.</p>
 {% if not groups %}
 <div class="alert alert-warning">You don't have any groups yet.</div>
-{% else %}
-{% endif %}
+{% else %}<ul>
+  {% for inst_name, instid, groupid in groups %}
+  <li>
+    <a href="{{url_for('group.view', groupid=groupid)}}">Your group</a> in institution <a href="{{url_for('institution.inst', instid=instid)}}">{{inst_name}}</a>
+  </li>
+  {% endfor %}
+</ul>{% endif %}
 <hr>
 <details>
   <summary>Advanced controls</summary>

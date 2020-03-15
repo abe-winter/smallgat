@@ -111,7 +111,7 @@ def find_group(instid):
     # todo: check complete user
     cur.execute('select 1 from memberships where instid = %s and userid = %s', (str(instid), userid))
     if not cur.fetchone():
-      flask.abort(403)
+      flask.abort(403) # todo: message 'you're already in a group'
     cur.execute('select group_size from institutions where instid = %s', (str(instid),))
     group_size, = cur.fetchone()
     groups = InstGroups().load(cur, str(instid))
@@ -131,7 +131,17 @@ def find_group(instid):
     return flask.redirect(flask.url_for('group.view', groupid=groupid))
   return flask.render_template('checkback.htm')
 
+@APP.route('/leave/<uuid:groupid>', methods=['POST'])
+@misc.require_session
+def leave(groupid):
+  raise NotImplementedError
+
 @APP.route('/view/<uuid:groupid>')
 @misc.require_session
 def view(groupid):
-  raise NotImplementedError
+  with con.withcon() as dbcon, dbcon.cursor() as cur:
+    cur.execute('select userid, name, email from group_members join users using (userid) where groupid = %s', (str(groupid),))
+    members = cur.fetchall()
+    if not any(row[0] == flask.g.session_body['userid'] for row in members):
+      flask.abort(403)
+  return flask.render_template('group.htm', members=members, own_userid=flask.g.session_body['userid'], groupid=groupid)

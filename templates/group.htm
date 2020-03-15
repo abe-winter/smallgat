@@ -1,0 +1,21 @@
+{% extends "base.htm" %}
+{% block title %}home{% endblock %}
+{% block container %}
+<h3>Group members</h3>
+<ul>{% for userid, name, email in members %}
+  <li>
+    {{name}}
+    <a href="mailto:{{email}}">{{email}}</a>
+    <details>
+      <summary>Actions</summary>
+      {% if userid == own_userid %}
+      <form style="display: inline" action="{{url_for('group.leave', groupid=groupid)}}" method="post">
+        <button class="btn btn-outline-danger btn-sm" role="submit">Leave</button>
+      </form>
+      {% else %}
+
+      {% endif %}
+    </details>
+  </li>
+{% endfor %}</ul>
+{% endblock container %}
