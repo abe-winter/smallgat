@@ -18,6 +18,7 @@ class InstGroups:
       (instid,)
     )
     user_groups = {userid: groupid for userid, groupid in cur.fetchall()}
+    # todo: lat/lng are strings because of ->>. switch operators and remove float cast below
     cur.execute("""select userid, geo->>'lat', geo->>'lng' from users
       left join memberships using (userid)
       where instid = %s and geo is not null

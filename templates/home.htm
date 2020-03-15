@@ -64,6 +64,7 @@ const VUE = new Vue({
     name: {{name|tojson}},
     age: {{age|tojson}},
     address: {{address|tojson}},
+    gmaps_link: {{gmaps_link|tojson}},
   }),
   computed: {
     incomplete() {
@@ -109,6 +110,8 @@ const VUE = new Vue({
         <td @click="edit('address')" style="cursor: pointer"><required :val="address" /> ✏️</td>
       </tr>
     </table>
+    <div class="alert alert-info" v-if="address && gmaps_link"><a :href="gmaps_link">Google maps location</a> for where we think your address is</div>
+    <div class="alert alert-warning" v-else-if="address">Couldn't understand your address. If you just changed it, wait a second and reload</div>
   </div>`,
   {% endraw %}
 });
