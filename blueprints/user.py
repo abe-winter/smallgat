@@ -1,4 +1,4 @@
-import flask
+import flask, geocoder, os, json
 from ..util import misc, con
 
 APP = flask.Blueprint('user', __name__)
@@ -48,7 +48,12 @@ def edit_field():
     cur.execute(f'update users set {body["field"]} = %s, modified = now() where userid = %s', (val, flask.g.session_body['userid']))
     dbcon.commit()
   if body['field'] == 'address':
-    # todo: address API
+    ret = geocoder.google(body['val'], key=os.environ['GEOCODING_API_KEY'])
+    if ret.status != 'OK':
+      raise NotImplementedError('geocoding error', ret.response)
+    with con.withcon() as dbcon, dbcon.cursor() as cur:
+      cur.execute(f'update users set geo = %s, modified = now() where userid = %s', (json.dumps(ret.json), flask.g.session_body['userid']))
+      dbcon.commit()
     # todo: enqueue this instead of inline processing
-    pass
+    # todo: better error handling & show status to user
   return flask.jsonify({'ok': True, 'body': body})

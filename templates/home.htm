@@ -23,7 +23,7 @@
       <td>{{age or ''}}</td>
     </tr>
     <tr>
-      <th>Address</th>
+      <td><b>Address</b><br>(This is just used for finding nearby people, okay to leave it approximate for privacy)</td>
       <td>{{address or ''}}</td>
     </tr>
   </table>
@@ -122,7 +122,7 @@ const VUE = new Vue({
         <td @click="edit('age')" style="cursor: pointer"><required :val="age" /> ✏️</td>
       </tr>
       <tr>
-        <th>Address</th>
+        <td><b>Address</b><br>(Okay to leave it approximate)</td>
         <td @click="edit('address')" style="cursor: pointer"><required :val="address" /> ✏️</td>
       </tr>
     </table>

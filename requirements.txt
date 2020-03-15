@@ -3,3 +3,4 @@ automig[postgres]==0.0.21
 requests==2.23.0
 redis==3.4.1
 hiredis==1.0.1
+geocoder==1.38.1
