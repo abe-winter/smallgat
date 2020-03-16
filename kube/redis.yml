@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels: &labels
+    app: redis
+spec:
+  ports:
+  - port: 6379
+    name: redis
+  clusterIP: None
+  selector: *labels
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels: &labels
+      app: redis
+  serviceName: redis
+  template:
+    metadata:
+      labels: *labels
+    spec:
+      containers:
+      - name: redis
+        image: redis:5.0
+        ports:
+        - containerPort: 6379
+          name: redis

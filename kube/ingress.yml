@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    # cloud.google.com/app-protocols: '{"my-port":"HTTP2"}'
+  name: smallgat-api
+  labels: &labels
+    app: smallgat-api
+spec:
+  type: NodePort
+  ports:
+  - port: 8000
+    targetPort: 8000
+  selector: *labels
+---
+apiVersion: networking.gke.io/v1beta1
+kind: ManagedCertificate
+metadata:
+  name: smallgat-naked
+spec:
+  domains:
+  - smallgatherings.app
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: smallgat
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: smallgat-ingress
+    # note: using 2x certs because spec.domains fails validation if more than 1
+    networking.gke.io/managed-certificates: smallgat-naked
+    # none of these 3 HSTS-like annotations work -- I'm using github.com/gin-contrib/secure instead
+    # something here https://github.com/kubernetes/ingress-gce/blob/4741042/pkg/annotations/ingress.go#L35
+    # ingress.kubernetes.io/ssl-redirect: "true"
+    # ingress.kubernetes.io/force-ssl-redirect: "true"
+    # kubernetes.io/ingress.allow-http: "false"
+spec:
+  tls:
+  - hosts:
+    - smallgatherings.app
+    secretName: smallgat-naked
+  rules:
+  - host: smallgatherings.app
+    http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: smallgat-api
+          servicePort: 8000

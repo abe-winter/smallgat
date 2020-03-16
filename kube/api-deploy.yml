@@ -1,0 +1,46 @@
+# api-deploy.yml -- deployment for the main API process
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smallgat-api
+  labels: &labels
+    app: smallgat-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels: *labels
+  strategy:
+    rollingUpdate:
+      # todo: tweak these as this gets bigger
+      maxUnavailable: 50%
+      maxSurge: 1
+  template:
+    metadata:
+      labels: *labels
+    spec:
+      containers:
+      - name: smallgat
+        image: gcr.io/headsdown/smallgat
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: 0.1
+            memory: 200M
+        env:
+        - name: REDIS_HOST
+          value: redis
+        - name: POSTMARK_PASS
+          valueFrom: {secretKeyRef: {name: keys, key: POSTMARK_PASS}}
+        - name: FLASK_SECRET
+          valueFrom: {secretKeyRef: {name: keys, key: FLASK_SECRET}}
+        - name: AUTOMIG_CON
+          valueFrom: {secretKeyRef: {name: tf-secrets, key: AUTOMIG_CON}}
+        - name: GEOCODING_API_KEY
+          valueFrom: {secretKeyRef: {name: keys, key: GEOCODING_API_KEY}}
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 1
+          periodSeconds: 10

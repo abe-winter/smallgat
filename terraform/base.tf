@@ -39,6 +39,7 @@ resource google_compute_global_address smallgat {
   name = "smallgat-ingress"
 }
 
+# warning: in prod, DNS is managed in domains.google -- the cloud DNS records are an illusion
 resource google_dns_record_set naked {
   name = google_dns_managed_zone.smallgat.dns_name
   managed_zone = google_dns_managed_zone.smallgat.name
