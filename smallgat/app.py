@@ -1,11 +1,13 @@
 "flask / gunicorn entrypoint"
 
-import flask, os
+import flask, os, werkzeug.middleware.proxy_fix
 
 from .blueprints import auth, user, institution, group
-from .util import con
+from .util import con, misc
 
 app = flask.Flask(__name__)
+# note: x_for=2 is right for our prod kube setup but consider env config
+app.wsgi_app = werkzeug.middleware.proxy_fix.ProxyFix(app.wsgi_app, x_for=2)
 app.secret_key = os.environ['FLASK_SECRET']
 app.register_blueprint(auth.APP, url_prefix='/auth')
 app.register_blueprint(user.APP, url_prefix='/user')
@@ -24,7 +26,10 @@ def terms():
 
 @app.route('/health')
 def health():
-  return flask.jsonify({'ok': True})
+  return flask.jsonify({
+    'ok': True,
+    'remote_ip': misc.external_ip(),
+  })
 
 class IntentionalError(Exception):
   pass

@@ -24,9 +24,6 @@ redis-host:
 redis-cli:
 	docker exec -it ${NAME}-redis redis-cli
 
-lint:
-	pylint -E . blueprints/ util/
-
 SHA = $(shell git rev-parse --short=8 HEAD)
 IMAGE = $(CONTAINER_REPO)/smallgat:$(SHA)
 push-container:

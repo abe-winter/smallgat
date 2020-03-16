@@ -1,7 +1,7 @@
 "magic link functionality"
 
 import flask, uuid, json, logging
-from ..util import email, misc, con
+from ..util import email, misc, con, rates
 
 APP = flask.Blueprint('auth', __name__)
 
@@ -17,15 +17,20 @@ LINK_EMAIL_BODY = """<html><body>
 <p>This link will expire in 30 minutes, just <a href="{login_url}">log in again</a> if that happens.</p>
 </body></html>"""
 
+RATE_LOGIN = rates.MemRateLimiter(1000, 60)
+RATE_LOGIN_IP = rates.MemValueLimiter(10, 60)
+# todo: move email one to redis so it's cluster-global
+RATE_LOGIN_EMAIL = rates.MemValueThrottle(1, 60)
+
 @APP.route('/login', methods=['POST'])
 def post_login():
   email_addr = flask.request.form['email']
   if len(email_addr) > 256:
     # todo: show to user
     raise ValueError('email too long')
-  misc.try_rate('login', 1000, '1m')
-  misc.try_rate('login.ip', 10, '1m', misc.external_ip())
-  misc.try_rate('login.email', 1, '10s', email_addr) # todo: normalize email here
+  misc.abort_rate('Global logins exceeded', RATE_LOGIN)
+  misc.abort_rate('Per-IP logins exceeded', RATE_LOGIN_IP, misc.external_ip())
+  misc.abort_rate('Per-email logins exceeded', RATE_LOGIN_EMAIL, misc.normalize_email(email_addr))
   user_key = misc.rkey('ulog', email_addr)
   val = con.REDIS.get(user_key)
   if val:
@@ -55,10 +60,13 @@ def lookup_or_create_user(email_addr):
     dbcon.commit()
     return userid
 
+RATE_REDEEM = rates.MemRateLimiter(1000, 60)
+RATE_REDEEM_IP = rates.MemValueLimiter(10, 60)
+
 @APP.route('/magic/<uuid:key>')
 def redeem_magic(key):
-  misc.try_rate('redeem', 1000, '1m')
-  misc.try_rate('redeem.ip', 10, '1m', misc.external_ip())
+  misc.abort_rate('Global link redeems exceeded', RATE_REDEEM)
+  misc.abort_rate('Per-IP link redeems exceeded', RATE_REDEEM_IP, misc.external_ip())
   # warning: fun race conditions here
   magic_key = misc.rkey('magic', str(key))
   raw = con.REDIS.get(magic_key)

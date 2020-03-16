@@ -1,4 +1,4 @@
-import functools, flask, json, uuid
+import functools, flask, json, uuid, re
 from . import con
 
 EXPIRE_SESSION = 3600 * 24 * 60
@@ -10,21 +10,40 @@ class FancyError(Exception):
   "show a nice page with message"
   # todo: actually show a nice page
 
-def try_rate(name, count, bucket, value=None, crash=True):
-  """Crashes or returns false (depending on crash param) if rate exceeded.
-  name: name of the rate-limiter
-  count: number allowed per bucket
-  bucket: bucket size in second or minute ('1s', '5m')
-  value: value to sub-bucket -- okay to leave null for global
-  """
-  # todo: make this not a no-op
-  # todo: alert when exceeded
-  # todo: provide an efficient way to check several of these at once
-  return True
+ABORT_MESSAGE = """<html>
+<head>
+  <title>Error: rate limit</title>
+</head>
+<body>
+  <h3>Error: you hit a rate limit</h3>
+  <p>This could be because you personally are sending us too much traffic, or it could be because of global traffic to the site. Either way, set a timer on your phone and come back in a few minutes.</p>
+  <p>If this keeps happening, tell support@smallgatherings.app.</p>
+  <p>Details: {message}</p>
+  <p>Max rate: {maxrate}</p>
+</body>
+</html>"""
+
+def abort_rate(message, limiter, *args):
+  "calls flask.abort with message if rate limit exceeded. passes down *args"
+  if not limiter.try_push(*args):
+    flask.abort(flask.Response(
+      ABORT_MESSAGE.format(message=message, maxrate=limiter.render_rate()),
+      content_type='text/html',
+      status=429
+    ))
+
+RE_PLUS_EMAIL = re.compile(r'^([^@\+]+)\+[^@]+(@[^@]+)$')
+
+def normalize_email(raw):
+  "normalize gmail addresses"
+  match = RE_PLUS_EMAIL.match(raw)
+  if not match:
+    return raw
+  groups = match.groups()
+  return f'{groups[0]}{groups[1]}'
 
 def external_ip():
-  # todo
-  return None
+  return flask.request.remote_addr
 
 def rkey(key, val):
   "helper to format json-based redis keys"
