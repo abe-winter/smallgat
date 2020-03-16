@@ -30,14 +30,14 @@ lint:
 SHA = $(shell git rev-parse --short=8 HEAD)
 IMAGE = $(CONTAINER_REPO)/smallgat:$(SHA)
 push-container:
-	# if [ -z "$(git status --untracked-files=no --porcelain)" ]; then exit 1; fi
+	if [ -z "$(git status --untracked-files=no --porcelain)" ]; then exit 1; fi
 	echo $(IMAGE)
 	docker build -t $(IMAGE) .
 	docker push $(IMAGE)
 
 MIG_IMAGE = $(CONTAINER_REPO)/smallgat-migrate:$(SHA)
 push-migration:
-	# if [ -z "$(git status --untracked-files=no --porcelain)" ]; then exit 1; fi
+	if [ -z "$(git status --untracked-files=no --porcelain)" ]; then exit 1; fi
 	echo $(MIG_IMAGE)
 	docker build -t $(MIG_IMAGE) -f automig.Dockerfile .
 	docker push $(MIG_IMAGE)
