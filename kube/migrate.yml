@@ -14,12 +14,8 @@ spec:
           containers:
           - name: migrate
             image: gcr.io/headsdown/smallgat-migrate
-            command: [automig_pg, update]
+            command: [automig_pg, --target, HEAD, --glob, schema.sql, update]
             env:
-            - name: TARGET
-              value: 1cacf629
-            - name: AUTOMIG_GLOB
-              value: schema.sql
             - name: AUTOMIG_CON
               valueFrom: {secretKeyRef: {name: tf-secrets, key: AUTOMIG_CON}}
             - name: PGCONNECT_TIMEOUT

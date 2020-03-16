@@ -6,7 +6,7 @@ metadata:
   labels: &labels
     app: smallgat-api
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels: *labels
   strategy:
