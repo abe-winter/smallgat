@@ -27,6 +27,9 @@ resource google_container_cluster smallgat {
     oauth_scopes = [
       "https://www.googleapis.com/auth/logging.write",
       "https://www.googleapis.com/auth/monitoring",
+      # this is just for pulling images and is too broad; there must be a better way to do this
+      # also why can't it inherit the granular bucket perm from the default service account?
+      "https://www.googleapis.com/auth/devstorage.read_only",
     ]
   }
 }
