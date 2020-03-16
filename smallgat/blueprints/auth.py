@@ -34,10 +34,9 @@ def post_login():
     'email': email_addr,
     'magic': str(uuid.uuid4()),
   }
-  # todo: make sure this keeps https in prod
   email.send_email(email_addr, 'Magic login link', LINK_EMAIL_BODY.format(
-    link=flask.url_for('auth.redeem_magic', key=body['magic'], _external=True),
-    login_url=flask.url_for('auth.get_login', _external=True),
+    link=flask.url_for('auth.redeem_magic', key=body['magic'], _external=True, _scheme='https'),
+    login_url=flask.url_for('auth.get_login', _external=True, _scheme='https'),
   ))
   con.REDIS.setex(user_key, EXPIRE_MAGIC, json.dumps(body))
   con.REDIS.setex(misc.rkey('magic', body['magic']), EXPIRE_MAGIC, json.dumps(body))

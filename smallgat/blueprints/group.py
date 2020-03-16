@@ -101,7 +101,7 @@ def create_group(cur, instid, userids):
   )
   cur.execute('select email from users where userid in %s', (userids,))
   emails = [email for email, in cur.fetchall()]
-  url = flask.url_for('group.view', groupid=groupid, _external=True)
+  url = flask.url_for('group.view', groupid=groupid, _external=True, _scheme='https')
   # todo: move email to queue
   email.send_email(', '.join(emails), 'New gathering created', NEW_GROUP_BODY.format(url=url))
   return groupid
@@ -116,7 +116,7 @@ def assign_group(cur, groupid, userid, group_size, email_addr):
     raise misc.FancyError("Group too large")
   cur.execute('insert into group_members (groupid, userid) values (%s, %s)', (groupid, userid))
   # todo: email in queue
-  url = flask.url_for('group.view', groupid=groupid, _external=True)
+  url = flask.url_for('group.view', groupid=groupid, _external=True, _scheme='https')
   email.send_email(email_addr, "You joined a gathering", NEW_GROUP_BODY.format(url=url))
 
 @APP.route('/find/<uuid:instid>', methods=['POST'])
