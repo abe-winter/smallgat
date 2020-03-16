@@ -22,6 +22,10 @@ resource google_project_service stackdriver {
   service = "stackdriver.googleapis.com"
 }
 
+resource google_project_service registry {
+  service = "containerregistry.googleapis.com"
+}
+
 resource google_compute_network smallgat {
   name = "smallgat"
 }
@@ -42,3 +46,19 @@ resource google_dns_record_set naked {
   ttl = 300
   rrdatas = [google_compute_global_address.smallgat.address]
 }
+
+# note: G recommends `gcloud auth configure-docker`
+# but it seems not to work, hence this spaghetti
+resource google_service_account image_pusher {
+  account_id = "image-pusher"
+  description = "push docker images, because cred helper isn't working"
+}
+
+resource google_project_iam_member storage_role {
+  role = "roles/storage.admin"
+  member = "serviceAccount:${google_service_account.image_pusher.email}"
+}
+
+output pusher_email { value = google_service_account.image_pusher.email }
+
+# gcloud iam service-accounts keys create keyfile.json --iam-account [NAME]@[PROJECT_ID].iam.gserviceaccount.com
