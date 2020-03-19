@@ -1,0 +1,10 @@
+{% set no_logout = True %}
+{% set track_page = True %}
+{% extends "base.htm" %}
+{% block title %}created{% endblock %}
+{% block container %}
+<h3>Account created</h3>
+<p>Thanks! That did the trick.</p>
+<p>Now <a href="{{url_for('auth.get_login')}}">log in</a> with the account you just created to make sure it worked.</p>
+<p>We sent a verification check to your email as well -- you'll have to click it before you can perform most actions on the site.</p>
+{% endblock container %}

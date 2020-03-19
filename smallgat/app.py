@@ -36,4 +36,4 @@ class IntentionalError(Exception):
 
 @app.route('/crash')
 def crash():
-  raise IntentionalError
+  misc.abort_msg(500, 'Intentional error', "You've discovered the crash route, which wakes somebody up to deal with errors.")

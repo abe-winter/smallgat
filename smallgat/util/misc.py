@@ -9,9 +9,31 @@ class RateError(Exception):
 class FancyError(Exception):
   "show a nice page with message"
   # todo: actually show a nice page
+  # todo: replace this everywhere with abort(response, status=)
 
-ABORT_MESSAGE = """<html>
+ERR_TEMPLATE = """<html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+</head>
+<body>
+<h3>🚨 Error: {title}</h3>
+<p>{msg}</p>
+<hr>
+<p>Email support@smallgatherings.app if something seems fishy about this.</p>
+</html>
+"""
+
+def abort_msg(status, title, msg):
+  "helper to abort with status code and user-visible error"
+  flask.abort(flask.Response(
+    ERR_TEMPLATE.format(title=title, msg=msg),
+    status=400
+  ))
+
+RATE_ERROR_MSG = """<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Error: rate limit</title>
 </head>
 <body>
@@ -27,7 +49,7 @@ def abort_rate(message, limiter, *args):
   "calls flask.abort with message if rate limit exceeded. passes down *args"
   if not limiter.try_push(*args):
     flask.abort(flask.Response(
-      ABORT_MESSAGE.format(message=message, maxrate=limiter.render_rate()),
+      RATE_ERROR_MSG.format(message=message, maxrate=limiter.render_rate()),
       content_type='text/html',
       status=429
     ))
@@ -75,3 +97,19 @@ def require_session(inner):
     flask.g.session_body = json.loads(raw)
     return inner(*args, **kwargs)
   return outer
+
+def complete_user(cur, userid):
+  "has the user done all the setup steps -- this gates most site actions"
+  # warning: duplicated logic in home.htm vue
+  cur.execute('select name, age, address, email_verified from users where userid = %s', (userid,))
+  row = cur.fetchone()
+  return bool(row and all(row))
+
+def abort_complete(cur, userid):
+  "abort if non-complete user"
+  if not complete_user(cur, userid):
+    abort_msg(
+      403,
+      "Please complete your profile",
+      f'You just did something that requires a complete profile. Go to your <a href="{flask.url_for("user.home")}">profile page</a> and fill in all the red / required fields.'
+    )

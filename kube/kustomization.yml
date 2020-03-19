@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: gcr.io/headsdown/smallgat
-  newTag: ef1c4c0d
+  newTag: 219b107a
 - name: gcr.io/headsdown/smallgat-migrate
   newTag: ef1c4c0d
 secretGenerator:

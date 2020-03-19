@@ -8,16 +8,18 @@ MAX_INST = 5
 @APP.route('/new')
 @misc.require_session
 def get_new():
+  with con.withcon() as dbcon, dbcon.cursor() as cur:
+    misc.abort_complete(cur, flask.g.session_body['userid'])
   return flask.render_template('new_inst.htm')
 
 @APP.route('/new', methods=['POST'])
 @misc.require_session
 def post_new():
   form = flask.request.form
-  print(form)
+  userid = flask.g.session_body['userid']
   with con.withcon() as dbcon, dbcon.cursor() as cur:
-    # todo: check complete user
-    cur.execute('select count(*) from institutions join inst_roles using (instid) where userid = %s', (flask.g.session_body['userid'],))
+    misc.abort_complete(cur, userid)
+    cur.execute('select count(*) from institutions join inst_roles using (instid) where userid = %s', (userid,))
     count, = cur.fetchone()
     if count >= MAX_INST:
       return f"Error: you have {MAX_INST} institutions already, delete some before making new ones"
@@ -25,7 +27,7 @@ def post_new():
     email_domain = form['email_domain'] or None
     cur.execute('insert into institutions (name, url, email_domain, kind) values (%s, %s, %s, %s) returning instid', (form['name'], form['url'], email_domain, form['kind']))
     instid, = cur.fetchone()
-    cur.execute('insert into inst_roles (instid, userid, role) values (%s, %s, %s)', (instid, flask.g.session_body['userid'], role))
+    cur.execute('insert into inst_roles (instid, userid, role) values (%s, %s, %s)', (instid, userid, role))
     dbcon.commit()
   return flask.redirect(flask.url_for('institution.inst', instid=instid))
 
@@ -61,7 +63,7 @@ def inst(instid):
 @misc.require_session
 def join(instid):
   with con.withcon() as dbcon, dbcon.cursor() as cur:
-    # todo: check complete user
+    misc.abort_complete(cur, flask.g.session_body['userid'])
     cur.execute('select email_domain, require_approval from institutions where instid = %s', (str(instid),))
     email_domain, require_approval = cur.fetchone()
     if email_domain and not flask.g.session_body['email'].endswith('@' + email_domain):

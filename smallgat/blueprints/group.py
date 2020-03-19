@@ -129,10 +129,9 @@ def find_group(instid):
   userid = flask.g.session_body['userid']
   max_miles = float(flask.request.form['max_miles'])
   with con.withcon() as dbcon, dbcon.cursor() as cur:
-    # todo: check complete user
     cur.execute('select 1 from memberships where instid = %s and userid = %s', (str(instid), userid))
     if not cur.fetchone():
-      flask.abort(403) # todo: message 'you're already in a group'
+      misc.abort_msg(403, "Already in a group", "You're already in a group -- we don't support reshuffling")
     cur.execute('select group_size from institutions where instid = %s', (str(instid),))
     group_size, = cur.fetchone()
     groups = InstGroups().load(cur, str(instid))
@@ -169,7 +168,7 @@ def view(groupid):
     cur.execute('select userid, name, email from group_members join users using (userid) where groupid = %s', (str(groupid),))
     members = cur.fetchall()
     if not any(row[0] == flask.g.session_body['userid'] for row in members):
-      flask.abort(403)
+      misc.abort_msg(403, "Not a member", "You can't view this group -- you're not in it")
     cur.execute('select groups.instid, name from groups join institutions using (instid) where groupid = %s', (str(groupid),))
     instid, name = cur.fetchone()
   return flask.render_template('group.htm', members=members, own_userid=flask.g.session_body['userid'], groupid=groupid, instid=instid, inst_name=name)

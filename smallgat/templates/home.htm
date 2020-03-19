@@ -66,10 +66,12 @@ const VUE = new Vue({
     age: {{age|tojson}},
     address: {{address|tojson}},
     gmaps_link: {{gmaps_link|tojson}},
+    email_verified: {{email_verified|tojson}},
+    verify_link: {{url_for('auth.reverify')|tojson}},
   }),
   computed: {
     incomplete() {
-      return !(this.name && this.age && this.address);
+      return !(this.name && this.age && this.address && this.email_verified);
     },
   },
   methods: {
@@ -91,12 +93,20 @@ const VUE = new Vue({
   },
   {% raw %}
   template: `<div>
-    <div v-if="incomplete" class="alert alert-danger">Your account is incomplete. You can't join groups until you populate all the fields</div>
+    <div v-if="incomplete" class="alert alert-danger">Your account is incomplete. You can't join groups until you populate all the fields and verify your email.</div>
     <div v-if="age && age < 13" class="alert alert-danger">You can't use this site if you're under 13</div>
     <table class="table">
       <tr>
         <th>Email</th>
-        <td>{{email}}</td>
+        <td>{{email}}
+          <div v-if="email_verified" class="text-muted">✔️ Email verified!</div>
+          <div v-else>
+            <span style="color:red">❌ Email not verified yet.</span>
+            <form :action="verify_link" method="post" style="display:inline">
+              <button class="btn btn-outline-success btn-sm">Resend link?</button>
+            </form>
+          </div>
+        </td>
       </tr>
       <tr>
         <th>Name</th>

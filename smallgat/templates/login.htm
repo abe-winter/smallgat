@@ -1,12 +1,31 @@
+{% set no_logout = True %}
 {% set track_page = True %}
 {% extends "base.htm" %}
 {% block title %}login{% endblock %}
 {% block container %}
-<h3>Sign in or create an account</h3>
-<p>Small gatherings uses a 'magic link' to do login -- enter your email below and we'll send you a login link. If you don't have an account, we'll create one when you log in.</p>
-<form method="post">
+<h2>Sign in or create an account</h2>
+<hr>
+<h4>🔑 Sign in with password</h4>
+<form method="post" action="{{url_for('auth.login_pass')}}">
   <label>Email <input type="email" class="form-control" placeholder="email" name="email" autofocus required></label>
-  <p>By clicking below, you accept our <a href="/terms">terms of service</a>.</p>
+  <label>Password <input type="password" class="form-control" placeholder="password" name="password" required></label>
+  <button class="btn btn-primary">Sign in</button>
+</form>
+<hr>
+<h4>🔑 Create an account with a password</h4>
+<p>By creating an account, you accept our <a href="/terms">terms of service</a>.</p>
+<form method="post" action="{{url_for('auth.create_pass')}}">
+  <label>Email <input type="email" class="form-control" placeholder="email" name="email" required></label>
+  <label>Password <input type="password" class="form-control" placeholder="password" name="password" required></label>
+  <button class="btn btn-success">Create account</button>
+</form>
+<hr>
+<h4>📧 Alternatively, use email links to access your account</h4>
+<p>Small gatherings can use a 'magic link' to do login -- enter your email below and we'll send you a login link. If you don't have an account, we'll create one when you log in.</p>
+<p>This sometimes goes to people's spam folders, so try a password account if this doesn't work for you.</p>
+<p>By creating an account, you accept our <a href="/terms">terms of service</a>.</p>
+<form method="post">
+  <label>Email <input type="email" class="form-control" placeholder="email" name="email" required></label>
   <button class="btn btn-primary">Sign in</button>
 </form>
 {% endblock container %}

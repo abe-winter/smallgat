@@ -8,8 +8,8 @@ APP = flask.Blueprint('user', __name__)
 def home():
   userid = flask.g.session_body['userid']
   with con.withcon() as dbcon, dbcon.cursor() as cur:
-    cur.execute('select name, age, address, geo from users where userid = %s', (userid,))
-    name, age, address, geo = cur.fetchone()
+    cur.execute('select name, age, address, geo, email_verified from users where userid = %s', (userid,))
+    name, age, address, geo, email_verified = cur.fetchone()
     cur.execute(
       """with role_insts as (select instid from inst_roles where userid = %s),
       member_insts as (select instid from memberships where userid = %s)
@@ -24,7 +24,7 @@ def home():
     )
     groups = cur.fetchall()
   gmaps_link = f'https://www.google.com/maps/search/?api=1&query={geo["lat"]},{geo["lng"]}' if geo else None
-  return flask.render_template('home.htm', email=flask.g.session_body['email'], name=name, age=age, address=address, insts=insts, groups=groups, gmaps_link=gmaps_link)
+  return flask.render_template('home.htm', email=flask.g.session_body['email'], name=name, age=age, address=address, insts=insts, groups=groups, gmaps_link=gmaps_link, email_verified=email_verified)
 
 @APP.route('/delete')
 @misc.require_session

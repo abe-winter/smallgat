@@ -3,9 +3,13 @@ create extension if not exists "uuid-ossp";
 create table users (
   userid uuid primary key default uuid_generate_v4(),
   email text not null unique,
+  email_verified boolean not null default false,
+  auth_meth text, -- ('magic', 'password')
   name text,
   age int,
   address text,
+  pass_hash bytea,
+  pass_salt bytea,
   geo jsonb, -- output from geocoder.google
   created timestamp not null default now(),
   modified timestamp not null default now()
@@ -15,6 +19,7 @@ create table deleted_users (
   -- todo: unique index across both tables
   userid uuid primary key,
   email text,
+  email_verified boolean not null default false,
   deleted timestamp not null default now(),
   orig_created timestamp,
   orig_modified timestamp
