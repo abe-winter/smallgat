@@ -1,5 +1,5 @@
 import flask
-from ..util import misc, con
+from ..util import misc, con, rates
 
 APP = flask.Blueprint('institution', __name__)
 
@@ -29,10 +29,12 @@ def post_new():
     dbcon.commit()
   return flask.redirect(flask.url_for('institution.inst', instid=instid))
 
+RATE_INST_IP = rates.MemRateLimiter(200, 60)
+
 @APP.route('/inst/<uuid:instid>')
 @misc.require_session
 def inst(instid):
-  misc.try_rate('inst.view', 100, '1m', misc.external_ip()) # to avoid scanning the space
+  misc.abort_rate('Per-IP accesses exceeded', RATE_INST_IP, misc.external_ip())
   with con.withcon() as dbcon, dbcon.cursor() as cur:
     cur.execute('select name, url, email_domain, kind, group_size from institutions where instid = %s', (str(instid),))
     row = cur.fetchone()
