@@ -91,7 +91,7 @@ def create_group(cur, instid, userids):
     logging.info('removing %d already_assigned from %d users', len(already_assigned), len(userids))
     userids = list(set(userids) - set(already_assigned))
   if not userids:
-    raise misc.FancyError("Something went wrong and those people aren't available -- try again")
+    misc.abort_msg(400, "Something went wrong", "Something went wrong and those people aren't available -- try again")
   cur.execute('insert into groups (instid) values (%s) returning groupid', (instid,))
   groupid, = cur.fetchone()
   psycopg2.extras.execute_batch(
@@ -111,9 +111,9 @@ def assign_group(cur, groupid, userid, group_size, email_addr):
   cur.execute('select userid from group_members where groupid = %s', (groupid,))
   userids = [userid for userid, in cur.fetchall()]
   if userid in userids:
-    raise misc.FancyError("You're already in this group")
+    misc.abort_msg(400, "Error joining group", "You're already in this group")
   if len(userids) >= group_size:
-    raise misc.FancyError("Group too large")
+    misc.abort_msg(400, "Group too large", f"This group only allows groups of size {group_size}, this one is full up. Try again maybe?")
   cur.execute('insert into group_members (groupid, userid) values (%s, %s)', (groupid, userid))
   # todo: email in queue
   url = flask.url_for('group.view', groupid=groupid, _external=True, _scheme='https')

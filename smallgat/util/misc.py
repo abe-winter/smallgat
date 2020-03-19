@@ -3,14 +3,6 @@ from . import con
 
 EXPIRE_SESSION = 3600 * 24 * 60
 
-class RateError(Exception):
-  "flask will catch these and show a nice page"
-
-class FancyError(Exception):
-  "show a nice page with message"
-  # todo: actually show a nice page
-  # todo: replace this everywhere with abort(response, status=)
-
 ERR_TEMPLATE = """<html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

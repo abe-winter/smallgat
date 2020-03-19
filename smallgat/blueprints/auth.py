@@ -46,8 +46,7 @@ def post_login():
   user_key = misc.rkey('ulog', email_addr)
   val = con.REDIS.get(user_key)
   if val:
-    # todo: rendered error please
-    raise misc.RateError("you already have an open login request -- check your email")
+    misc.abort_msg(400, "Login already in progress", "You already have an open login request -- check your email")
   body = {
     'email': email_addr,
     'magic': str(uuid.uuid4()),
@@ -128,7 +127,7 @@ def redeem_magic(key):
   magic_key = misc.rkey('magic', str(key))
   raw = con.REDIS.get(magic_key)
   if not raw:
-    raise ValueError("todo: tell user bad link, give instructions")
+    misc.abort_msg(400, "Bad or expired link", "Hi! You clicked a bad or expired magic link. Re-send from your homepage.")
   body = json.loads(raw)
   con.REDIS.delete(magic_key)
   con.REDIS.delete(misc.rkey('ulog', body['email']))
